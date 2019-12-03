@@ -18,7 +18,7 @@ parser.add_argument('-n', '--n_cascades', type=int, default=1,
                     help='Number of cascades')
 parser.add_argument('-r', '--rep', type=int, default=1,
                     help='Number of times of shared-weight cascading')
-parser.add_argument('-g', '--gpu', type=str, default='-1',
+parser.add_argument('-g', '--gpu', type=str, default='0',
                     help='Specifies gpu device(s)')
 parser.add_argument('-c', '--checkpoint', type=str, default=None,
                     help='Specifies a previous checkpoint to start with')
@@ -187,13 +187,14 @@ def main():
             tflearn.is_training(True, session=sess)
             summ, _ = sess.run([framework.summaryExtra, framework.adamOpt],
                                set_tf_keys(fd, learningRate=lr))
-            # keys = tuple(('warped_seg_moving')
-            # predictions = sess.run(framework.get_predictions(keys))
+         
+           
 
 
             for v in tf.Summary().FromString(summ).value:
                 if v.tag == 'loss':
                     loss = v.simple_value
+
 
             steps += 1
             if args.debug or steps % 10 == 0:

@@ -126,6 +126,8 @@ class FrameworkUnsupervised:
 
     def get_predictions(self, *keys):
         return dict([(k, self.predictions[k]) for k in keys])
+    def get_warped_seg_moving(self):
+        return self.predictions('warped_seg_moving')
 
     def validate_clean(self, sess, generator, keys=None):
         for fd in generator:
@@ -136,7 +138,7 @@ class FrameworkUnsupervised:
 
     def validate(self, sess, generator, keys=None, summary=False, predict=False):
         if keys is None:
-            keys = ['dice_score', 'landmark_dist', 'pt_mask', 'jacc_score']
+            keys = ['dice_score', 'landmark_dist', 'pt_mask', 'jacc_score','warped_seg_moving']
             # if self.segmentation_class_value is not None:
             #     for k in self.segmentation_class_value:
             #         keys.append('jacc_{}'.format(k))
@@ -174,5 +176,47 @@ class FrameworkUnsupervised:
             full_results[k] = np.concatenate(full_results[k], axis=0)
             if summary:
                 full_results[k] = full_results[k].mean()
+
+        return full_results
+
+
+
+    def my_validate(self, sess, generator, keys=None, summary=False, predict=False):
+        if keys is None:
+            keys = ['image_fixed','warped_moving','warped_moving_0','warped_moving_1','warped_moving_2',\
+            'warped_moving_3','warped_moving_4',\
+            'warped_moving_5','warped_moving_6','warped_moving_7','warped_moving_8','warped_moving_9',\
+                'warped_moving_10']
+        full_results = dict([(k, list()) for k in keys])
+
+        full_results['id1'] = []
+        full_results['id2'] = []
+        full_results['seg1'] = []
+        full_results['seg2'] = []
+        full_results['img1'] = []
+        full_results['img2'] = []
+        tflearn.is_training(False, sess)
+        for fd in generator:
+            id1 = fd.pop('id1')
+            id2 = fd.pop('id2')
+            results = sess.run(self.get_predictions(
+                *keys), feed_dict=set_tf_keys(fd))
+           
+            # results['id1'] = id1
+            # results['id2'] = id2
+            # results['seg1'] = fd['seg1']
+            # results['seg2'] = fd['seg2']
+            # results['img1'] = fd['voxel1']
+            # results['img2'] = fd['voxel2']
+            mask = np.where([i and j for i, j in zip(id1, id2)])
+            for k, v in results.items():
+                full_results[k].append(v[mask])
+            print('break')
+            break
+
+        # for k in full_results:
+        #     full_results[k] = np.concatenate(full_results[k], axis=0)
+        #     if summary:
+        #         full_results[k] = full_results[k].mean()
 
         return full_results

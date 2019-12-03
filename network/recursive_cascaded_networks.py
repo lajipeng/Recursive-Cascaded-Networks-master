@@ -100,7 +100,7 @@ class RecursiveCascadedNetworks(Network):
             stem_result['warped'] = self.reconstruction(
                 [img2, stem_result['agg_flow']])
             stem_results.append(stem_result)
-q
+
         # unsupervised learning with simlarity loss and regularization loss
         for stem_result, (stem, params) in zip(stem_results, self.stems):
             if 'W' in stem_result:

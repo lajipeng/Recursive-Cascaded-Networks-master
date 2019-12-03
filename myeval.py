@@ -90,43 +90,35 @@ def main():
         val_subsets = args.val_subset.split(',')
 
     tflearn.is_training(False, session=sess)
-    keys = ['pt_mask', 'landmark_dists', 'jaccs', 'dices', 'jacobian_det','warped_seg_moving']
-    if not os.path.exists('evaluate'):
-        os.mkdir('evaluate')
-    path_prefix = os.path.join('evaluate', short_name(checkpoint))
-    if args.rep > 1:
-        path_prefix = path_prefix + '-rep' + str(args.rep)
-    if args.name is not None:
-        path_prefix = path_prefix + '-' + args.name
+    if not os.path.exists('pair'):
+        os.mkdir('pair')
     for val_subset in val_subsets:
-        if args.val_subset is not None:
-            output_fname = path_prefix + '-' + str(val_subset) + '.txt'
-        else:
-            output_fname = path_prefix + '.txt'
-        with open(output_fname, 'w') as fo:
-            print("Validation subset {}".format(val_subset))
-            gen = ds.generator(val_subset, loop=False)
-            results = framework.validate(sess, gen, keys=keys, summary=False)
-            for i in range(len(results['jaccs'])):
-                print(results['id1'][i], results['id2'][i], np.mean(results['dices'][i]), np.mean(results['jaccs'][i]), np.mean(
-                    results['landmark_dists'][i]), results['jacobian_det'][i], file=fo)
-            print('Summary', file=fo)
-            jaccs, dices, landmarks = results['jaccs'], results['dices'], results['landmark_dists']
-            jacobian_det = results['jacobian_det']
-            print("Dice score: {} ({})".format(np.mean(dices), np.std(
-                np.mean(dices, axis=-1))), file=fo)
-            print("Jacc score: {} ({})".format(np.mean(jaccs), np.std(
-                np.mean(jaccs, axis=-1))), file=fo)
-            print("Landmark distance: {} ({})".format(np.mean(landmarks), np.std(
-                np.mean(landmarks, axis=-1))), file=fo)
-            print("Jacobian determinant: {} ({})".format(np.mean(
-                jacobian_det), np.std(jacobian_det)), file=fo)
+        print("Validation subset {}".format(val_subset))
+        gen = ds.generator(val_subset, loop=False)
+        results = framework.my_validate(sess, gen, keys=None, summary=False)
+        indexname = ['warped_moving','warped_moving0','warped_moving2','warped_moving3',\
+        'warped_moving4','warped_moving5','warped_moving6','warped_moving7','warped_moving8',\
+            'warped_moving9','warped_moving10','image_fixed']
+        warped_moving =  results['warped_moving'][0][0][:,:,:,0]
+        warped_moving0 = results['warped_moving_0'][0][0][:,:,:,0]
+        warped_moving1 = results['warped_moving_1'][0][0][:,:,:,0]
+        warped_moving2 = results['warped_moving_2'][0][0][:,:,:,0]
+        warped_moving3 = results['warped_moving_3'][0][0][:,:,:,0]
+        warped_moving4 = results['warped_moving_4'][0][0][:,:,:,0]
+        warped_moving5 = results['warped_moving_5'][0][0][:,:,:,0]
+        warped_moving6 = results['warped_moving_6'][0][0][:,:,:,0]
+        warped_moving7 = results['warped_moving_7'][0][0][:,:,:,0]
+        warped_moving8 = results['warped_moving_8'][0][0][:,:,:,0]
+        warped_moving9 = results['warped_moving_9'][0][0][:,:,:,0]
+        warped_moving10 = results['warped_moving_10'][0][0][:,:,:,0]
+        image_fixed = results['image_fixed'][0][0][:,:,:,0]
+        np.savez('array_save.npz',warped_moving,warped_moving0,warped_moving1,warped_moving2,warped_moving3,\
+        warped_moving4,warped_moving5,warped_moving6,warped_moving7,warped_moving8,\
+            warped_moving9,warped_moving10,image_fixed,indexname)
 
 
-def short_name(checkpoint):
-    cpath, steps = os.path.split(checkpoint)
-    _, exp = os.path.split(cpath)
-    return exp + '-' + steps
+
+
 
 
 def find_checkpoint_step(checkpoint_path, target_steps=None):
